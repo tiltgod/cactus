@@ -18,6 +18,7 @@ from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Dropout, Global
 from tensorflow.keras import optimizers, regularizers
 from tensorflow.keras.callbacks import Callback, EarlyStopping, LearningRateScheduler
 
+import model
 np.random.seed(12)
 tf.random.set_seed(12)
 
