@@ -24,7 +24,9 @@ df_test = pd.read_csv('/Users/napasin_h/Desktop/aerial-cactus-identification/sam
     #Decode JPEG content to RGB pixels
     #Convert this into floating tensors
     #Rescale pixels values(0-255) to [0, 1] interval
+#add arguement 'validation_split' for spliting data automatically and add 'subset' for define 'training' or 'validation'
 datagen = ImageDataGenerator(rescale = 1./255)
+#datagen = ImageDataGenerator(rescale = 1./255, validation_split = 0.25)
 batch_size = 150
 
 #create a dataframe using pandas and text files provided,
@@ -32,10 +34,12 @@ batch_size = 150
 #(only the file names, not the path) and other classes to be used by the model
 #Change only 1 column to string
 train['has_cactus'] = train['has_cactus'].astype(str)
+#split train and validate dataset
 train_generator = datagen.flow_from_dataframe(dataframe = train[:15001], directory = train_dir, x_col = 'id',
-                                             y_col = 'has_cactus', class_mode ='binary', batch_size = batch_size,
-                                             target_size = (150, 150))
+                                             y_col = 'has_cactus', class_mode ='binary', batch_size = batch_size, target_size = (150, 150))
 
 validation_generator=datagen.flow_from_dataframe(dataframe = train[15000:], directory = train_dir, x_col = 'id',
-                                                y_col = 'has_cactus', class_mode = 'binary', batch_size = 50,
-                                                 target_size=(150, 150))
+                                                y_col = 'has_cactus', class_mode = 'binary', batch_size = 50, target_size=(150, 150))
+#try validation split in ImageDataGenerator
+#test_validation_split = datagen.flow_from_dataframe(dataframe = train, directory = train_dir, x_col = 'id',
+                                             #y_col = 'has_cactus', class_mode ='binary', batch_size = batch_size ,subset = 'validation', target_size = (150, 150))
