@@ -1,95 +1,41 @@
-import os
-import sys
-import numpy as np
-import pandas as pd
+#Loading require library
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import os,cv2
+from IPython.display import Image
+from keras.preprocessing import image
+from keras import optimizers
+from keras import layers,models
+from keras.applications.imagenet_utils import preprocess_input
 import matplotlib.pyplot as plt
-%matplotlib inline
-import matplotlib.image as pimg
 import seaborn as sns
-import math
-from tqdm import tqdm
-from PIL import Image
+from keras import regularizers
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.vgg16 import VGG16
+#print(os.listdir("/Users/napasin_h/Desktop/aerial-cactus-identification"))
+import numpy as np
 
-class CactusConfig(Config):
-    """docstring for CactusConfig."""
-    name = Cactus
-    initial_rate = 0.001
-    drop = 0.5
-    epoch_drop = 10.0
-    epochs = 30
-    batch_size = 32
-    img_width  = 32
-    img_height = 32
-    input_shape = (img_width, img_height, 3)
-    optimizer = optimizers.Adam(lr=1e-3)
+train_dir = "/Users/napasin_h/Desktop/aerial-cactus-identification/train"
+test_dir = "/Users/napasin_h/Desktop/aerial-cactus-identification/test"
+train = pd.read_csv('/Users/napasin_h/Desktop/aerial-cactus-identification/train.csv')
+df_test = pd.read_csv('/Users/napasin_h/Desktop/aerial-cactus-identification/sample_submission.csv')
 
-class CactusDataset(Dataset):
-    """docstring for CactusDataset"""
-    main_df = args.main_df
-    sub_df = args.sub_df
-    target_size = (config.img_width, config.img_height)
+#Data preparation
+    #Read picture file
+    #Decode JPEG content to RGB pixels
+    #Convert this into floating tensors
+    #Rescale pixels values(0-255) to [0, 1] interval
+datagen = ImageDataGenerator(rescale = 1./255)
+batch_size = 150
 
-    def split_data()
-        train_df, val_df = train_test_split(main_df, test_size=0.25, stratify= main_df['has_cactus'], shuffle=True, random_state=12)
-        train_df = train_df.reset_index()
-        val_df = val_df.reset_index()
-        total_train = train_df.shape[0]
-        total_val = val_df.shape[0]
-        return total_train, total_val
+#create a dataframe using pandas and text files provided,
+#and create a meaningful dataframe with columns having file name
+#(only the file names, not the path) and other classes to be used by the model
+#Change only 1 column to string
+train['has_cactus'] = train['has_cactus'].astype(str)
+train_generator = datagen.flow_from_dataframe(dataframe = train[:15001], directory = train_dir, x_col = 'id',
+                                             y_col = 'has_cactus', class_mode ='binary', batch_size = batch_size,
+                                             target_size = (150, 150))
 
-    def define_data_augment()
-        # Define Data Augmentation
-        train_datagen = ImageDataGenerator(rescale=1./255)
-        val_datagen = ImageDataGenerator(rescale=1./255)
-        test_datagen = ImageDataGenerator(rescale=1./255)
-        return train_datagen, val_datagen, test_datagen
-
-    def convert_label()
-        # Convert the data type of 'has_cactus' to str to allow the model to be trained.
-        train_df['has_cactus'] = train_df['has_cactus'].astype(str)
-        val_df['has_cactus'] = val_df['has_cactus'].astype(str)
-
-def step_decay(epoch, config)
-    lrate = config.INITIAL_RATE * math.pow(config.DROP, math.floor((config.EPOCHS) / config.EPOCH_DROP))
-    return lrate
-
-def scheduler()
-    lrate = LearningRateScheduler(step_decay)
-    es = EarlyStopping(monitor='val_loss', min_delta=0, patience=5)
-    callback = [lrate, es]
-    return callback
-
-def train_model(config, dataset, model)
-    callbacks = scheduler()
-
-    history = model.fit(
-    train_gen,
-    epochs=config.EPOCHS,
-    steps_per_epoch=dataset.total_train//config.BATCH_SIZE,
-    validation_data=dataset.val_gen,
-    validation_steps=dataset.total_val//config.BATCH_SIZE,
-    callbacks=callbacks,)
-    return history
-
-import argparse
-parser = argparse.ArgumentParser(description='Cactus identification')
-parser.add_argument("command", metavar="<command>", help="'train', 'predict'")
-parser.add_argument("--main_df", metavar="")
-parser.add_argument("--sub_df", metavar="")
-parser.add_argument("--training_set", metavar="")
-parser.add_argument("--test_set", metavar="")
-args = parser.parse_args()
-
-if args.command == "train":
-    assert args.training_set, "training_set require for training"
-    assert args.test_set, "training_set require for testing"
-    assert args.main_df, "main_df require for training"
-    assert args.sub_df, "sub_df require for submission"
-    config = CactusConfig()
-    dataset = CactusDataset()
-
-if args.command == "predict":
-    assert args.training_set, "training_set require for training"
-    assert args.test_set, "training_set require for testing"
-    assert args.main_df, "main_df require for training"
-    assert args.sub_df, "sub_df require for submission"
+validation_generator=datagen.flow_from_dataframe(dataframe = train[15000:], directory = train_dir, x_col = 'id',
+                                                y_col = 'has_cactus', class_mode = 'binary', batch_size = 50,
+                                                 target_size=(150, 150))
