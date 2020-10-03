@@ -2,15 +2,16 @@
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import os,cv2
 from IPython.display import Image
-from keras.preprocessing import image
-from keras import optimizers
-from keras import layers,models
-from keras.applications.imagenet_utils import preprocess_input
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras import optimizers
+from tensorflow.keras import layers, models
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.applications.imagenet_utils import preprocess_input
 import matplotlib.pyplot as plt
 import seaborn as sns
-from keras import regularizers
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import VGG16
+from tensorflow.keras import regularizers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.vgg16 import VGG16
 #print(os.listdir("/Users/napasin_h/Desktop/aerial-cactus-identification"))
 import numpy as np
 
@@ -43,3 +44,23 @@ validation_generator=datagen.flow_from_dataframe(dataframe = train[15000:], dire
 #try validation split in ImageDataGenerator
 #test_validation_split = datagen.flow_from_dataframe(dataframe = train, directory = train_dir, x_col = 'id',
                                              #y_col = 'has_cactus', class_mode ='binary', batch_size = batch_size ,subset = 'validation', target_size = (150, 150))
+
+#Convolutions are defined on two key parameters
+    #The size of patches that are extracted from input feature map..ie here 3x3
+    #The number of filters computed from convolutions
+
+#Building our model
+#5 Conv2D + Maxpooling2D stages with relu activation function.
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)))
+model.add(layers.MaxPool2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3),activation='relu',input_shape=(150, 150, 3)))
+model.add(layers.MaxPool2D((2, 2)))
+model.add(Conv2D(128, (3, 3),activation='relu',input_shape=(150, 150, 3)))
+model.add(layers.MaxPool2D((2, 2)))
+model.add(layers.Conv2D(128, (3, 3),activation='relu',input_shape=(150, 150, 3)))
+model.add(layers.MaxPool2D((2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(512, activation='relu'))
+model.add(layers.Dense(1, activation='sigmoid'))
+model.summary()
